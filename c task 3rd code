@@ -1,0 +1,66 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+struct Student { int id; char name[50]; int age; float marks; };
+void add() {
+    FILE *f=fopen("students.dat","ab");
+    struct Student s;
+    printf("Enter ID Name Age Marks: ");
+    scanf("%d %s %d %f",&s.id,s.name,&s.age,&s.marks);
+    fwrite(&s,sizeof(s),1,f);
+    fclose(f);
+}
+void display() {
+    FILE *f=fopen("students.dat","rb");
+    struct Student s;
+    while(fread(&s,sizeof(s),1,f)) printf("%d %s %d %.2f\n",s.id,s.name,s.age,s.marks);
+    fclose(f);
+}
+void search() {
+    FILE *f=fopen("students.dat","rb");
+    int id,found=0; struct Student s;
+    printf("Enter ID to search: "); scanf("%d",&id);
+    while(fread(&s,sizeof(s),1,f)) if(s.id==id){ printf("%d %s %d %.2f\n",s.id,s.name,s.age,s.marks); found=1; break; }
+    if(!found) printf("Not found\n");
+    fclose(f);
+}
+void update() {
+    FILE *f=fopen("students.dat","rb+");
+    int id; struct Student s; long pos;
+    printf("Enter ID to update: "); scanf("%d",&id);
+    while(fread(&s,sizeof(s),1,f)) {
+        if(s.id==id) {
+            pos=ftell(f)-sizeof(s);
+            printf("Enter new Name Age Marks: ");
+            scanf("%s %d %f",s.name,&s.age,&s.marks);
+            fseek(f,pos,SEEK_SET);
+            fwrite(&s,sizeof(s),1,f);
+            break;
+        }
+    }
+    fclose(f);
+}
+void del() {
+    FILE *f=fopen("students.dat","rb"),*t=fopen("temp.dat","wb");
+    int id; struct Student s;
+    printf("Enter ID to delete: "); scanf("%d",&id);
+    while(fread(&s,sizeof(s),1,f)) if(s.id!=id) fwrite(&s,sizeof(s),1,t);
+    fclose(f); fclose(t);
+    remove("students.dat"); rename("temp.dat","students.dat");
+}
+int main() {
+    int ch;
+    while(1) {
+        printf("1.Add\n2.Display\n3.Search\n4.Update\n5.Delete\n6.Exit\nEnter choice: ");
+        scanf("%d",&ch);
+        switch(ch) {
+            case 1: add(); break;
+            case 2: display(); break;
+            case 3: search(); break;
+            case 4: update(); break;
+            case 5: del(); break;
+            case 6: exit(0);
+            default: printf("Invalid choice\n");
+        }
+    }
+}
